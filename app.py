@@ -76,7 +76,11 @@ SONG_TYPES = [
     "09 Namco Original",
     "10 Taiko Towers",
     "11 Dan Dojo",
+    "12 Custom",  # 自制谱面专用分类
 ]
+
+# 用户上传只允许使用此分类
+UPLOAD_ALLOWED_TYPE = "12 Custom"
 
 def get_remote_address() -> str:
     return flask.request.headers.get("CF-Connecting-IP") or flask.request.headers.get("X-Forwarded-For") or flask.request.remote_addr or "127.0.0.1"
@@ -1088,10 +1092,11 @@ def upload_file():
         db_entry['enabled'] = True
         pprint.pprint(db_entry)
 
-        # 必要な歌曲类型
+        # 必要な歌曲类型 - 用户上传仅限自制分类
         song_type = flask.request.form.get('song_type')
-        if not song_type or song_type not in SONG_TYPES:
-            return flask.jsonify({'error': 'invalid_song_type'})
+        # 如果未指定或不是允许的分类，强制设为自制分类
+        if not song_type or song_type != UPLOAD_ALLOWED_TYPE:
+            song_type = UPLOAD_ALLOWED_TYPE
         db_entry['song_type'] = song_type
 
         # mongoDBにデータをぶち込む（重複IDは部分更新で上書きし、_id を不変に保つ）
