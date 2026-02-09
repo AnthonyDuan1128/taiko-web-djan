@@ -1092,11 +1092,14 @@ def upload_file():
         db_entry['enabled'] = True
         pprint.pprint(db_entry)
 
-        # 必要な歌曲类型 - 用户上传仅限自制分类
+        # 必要な歌曲类型 - 如未指定则默认为自制分类，否则验证是否有效
         song_type = flask.request.form.get('song_type')
-        # 如果未指定或不是允许的分类，强制设为自制分类
-        if not song_type or song_type != UPLOAD_ALLOWED_TYPE:
+        if not song_type:
+            # 未指定分类时默认使用自制分类
             song_type = UPLOAD_ALLOWED_TYPE
+        elif song_type not in SONG_TYPES:
+            # 指定了无效分类
+            return flask.jsonify({'error': 'invalid_song_type'})
         db_entry['song_type'] = song_type
 
         # mongoDBにデータをぶち込む（重複IDは部分更新で上書きし、_id を不変に保つ）
