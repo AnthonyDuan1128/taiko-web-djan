@@ -172,6 +172,20 @@ var translations = {
 		tw: "有譜面分歧",
 		ko: "악보 분기 있음"
 	},
+	startChallenge: {
+		ja: "挑戦開始！",
+		en: "Start Challenge!",
+		cn: "开始挑战！",
+		tw: "開始挑戰！",
+		ko: "도전 시작!"
+	},
+	danDojoTitle: {
+		ja: "段位道場",
+		en: "Dan-i Dojo",
+		cn: "段位道场",
+		tw: "段位道場",
+		ko: "단위 도장"
+	},
 	defaultName: {
 		ja: "どんちゃん",
 		en: "Don-chan",

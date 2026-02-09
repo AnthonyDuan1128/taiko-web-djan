@@ -45,6 +45,24 @@ def take_config(name, required=False):
     else:
         return None
 
+def safe_int(value, default=None):
+    """安全转换为int，空字符串或None返回default"""
+    if value is None or value == '':
+        return default
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
+def safe_float(value, default=None):
+    """安全转换为float，空字符串或None返回default"""
+    if value is None or value == '':
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
 app = Flask(__name__)
 SONG_TYPES = [
     "01 Pop",
@@ -329,20 +347,21 @@ def route_admin_songs_new_post():
         output['subtitle_lang'][lang] = request.form.get('subtitle_%s' % lang) or None
 
     for course in ['easy', 'normal', 'hard', 'oni', 'ura']:
-        if request.form.get('course_%s' % course):
-            output['courses'][course] = {'stars': int(request.form.get('course_%s' % course)),
+        stars = safe_int(request.form.get('course_%s' % course))
+        if stars is not None:
+            output['courses'][course] = {'stars': stars,
                                          'branch': True if request.form.get('branch_%s' % course) else False}
         else:
             output['courses'][course] = None
     
-    output['category_id'] = int(request.form.get('category_id')) or None
+    output['category_id'] = safe_int(request.form.get('category_id'))
     output['type'] = request.form.get('type')
     output['music_type'] = request.form.get('music_type')
-    output['offset'] = float(request.form.get('offset')) or None
-    output['skin_id'] = int(request.form.get('skin_id')) or None
-    output['preview'] = float(request.form.get('preview')) or None
-    output['volume'] = float(request.form.get('volume')) or None
-    output['maker_id'] = int(request.form.get('maker_id')) or None
+    output['offset'] = safe_float(request.form.get('offset'))
+    output['skin_id'] = safe_int(request.form.get('skin_id'))
+    output['preview'] = safe_float(request.form.get('preview'))
+    output['volume'] = safe_float(request.form.get('volume'))
+    output['maker_id'] = safe_int(request.form.get('maker_id'))
     output['lyrics'] = True if request.form.get('lyrics') else False
     output['hash'] = request.form.get('hash')
     
@@ -390,20 +409,21 @@ def route_admin_songs_id_post(id):
         output['subtitle_lang'][lang] = request.form.get('subtitle_%s' % lang) or None
 
     for course in ['easy', 'normal', 'hard', 'oni', 'ura']:
-        if request.form.get('course_%s' % course):
-            output['courses'][course] = {'stars': int(request.form.get('course_%s' % course)),
+        stars = safe_int(request.form.get('course_%s' % course))
+        if stars is not None:
+            output['courses'][course] = {'stars': stars,
                                          'branch': True if request.form.get('branch_%s' % course) else False}
         else:
             output['courses'][course] = None
     
-    output['category_id'] = int(request.form.get('category_id')) or None
+    output['category_id'] = safe_int(request.form.get('category_id'))
     output['type'] = request.form.get('type')
     output['music_type'] = request.form.get('music_type')
-    output['offset'] = float(request.form.get('offset')) or None
-    output['skin_id'] = int(request.form.get('skin_id')) or None
-    output['preview'] = float(request.form.get('preview')) or None
-    output['volume'] = float(request.form.get('volume')) or None
-    output['maker_id'] = int(request.form.get('maker_id')) or None
+    output['offset'] = safe_float(request.form.get('offset'))
+    output['skin_id'] = safe_int(request.form.get('skin_id'))
+    output['preview'] = safe_float(request.form.get('preview'))
+    output['volume'] = safe_float(request.form.get('volume'))
+    output['maker_id'] = safe_int(request.form.get('maker_id'))
     output['lyrics'] = True if request.form.get('lyrics') else False
     output['hash'] = request.form.get('hash')
     

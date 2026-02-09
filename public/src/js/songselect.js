@@ -905,6 +905,15 @@ class SongSelect {
 					return
 				}
 
+				// Dan mode: Skip difficulty selection and show challenge button
+				if (currentSong.is_dan) {
+					this.playSound("se_don", 0, fromP2 ? fromP2.player : false)
+					assets.sounds["v_songsel"].stop()
+					// Directly start the song with oni difficulty
+					this.toLoadSong(3, false, false, false)
+					return
+				}
+
 				var prevScreen = this.state.screen
 				this.state.screen = "difficulty"
 				this.state.screenMS = this.getMS()

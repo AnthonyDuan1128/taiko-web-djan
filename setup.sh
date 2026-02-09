@@ -124,7 +124,7 @@ if [ -d "$DAN_SAMPLE_DIR" ]; then
     response=$(curl "${curl_args[@]}" 2>/dev/null || echo '{"error":"请求失败"}')
     local name
     name=$(basename "$dan_dir")
-    if echo "$response" | grep -q '"status".*:.*"ok"'; then
+    if echo "$response" | grep -q '"success".*:.*true'; then
       echo "  ✓ $name"
     else
       echo "  ✗ $name: $response"
