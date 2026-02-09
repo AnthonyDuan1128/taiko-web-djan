@@ -103,4 +103,39 @@ if command -v ufw >/dev/null 2>&1; then
   ufw allow 80/tcp || true
 fi
 
+echo "等待服务启动..."
+sleep 5
+
+echo "上传段位道场样本数据..."
+DAN_SAMPLE_DIR="$SRC_DIR/段位道场样本文件"
+if [ -d "$DAN_SAMPLE_DIR" ]; then
+  upload_dan() {
+    local dan_dir="$1"
+    local tja_file
+    tja_file=$(find "$dan_dir" -maxdepth 1 -name "*.tja" -type f | head -1)
+    if [ -z "$tja_file" ]; then
+      return
+    fi
+    local curl_args=(-s -X POST "http://127.0.0.1:80/api/upload" -F "file_tja=@$tja_file")
+    while IFS= read -r -d '' ogg_file; do
+      curl_args+=(-F "file_music[]=@$ogg_file")
+    done < <(find "$dan_dir" -maxdepth 1 -name "*.ogg" -type f -print0)
+    local response
+    response=$(curl "${curl_args[@]}" 2>/dev/null || echo '{"error":"请求失败"}')
+    local name
+    name=$(basename "$dan_dir")
+    if echo "$response" | grep -q '"status".*:.*"ok"'; then
+      echo "  ✓ $name"
+    else
+      echo "  ✗ $name: $response"
+    fi
+  }
+  find "$DAN_SAMPLE_DIR" -mindepth 2 -maxdepth 2 -type d | sort | while read -r dan_dir; do
+    upload_dan "$dan_dir"
+  done
+  echo "段位道场数据上传完成"
+else
+  echo "未找到段位道场样本文件夹，跳过上传"
+fi
+
 echo "部署完成（直接监听 80 端口）"
