@@ -967,7 +967,7 @@ class SongSelect {
 			} else if (currentSong.action === "upload") {
 				this.playSound("se_don");
 				setTimeout(() => {
-					window.location.href = "https://zizhipu.taiko.asia";
+					window.location.href = "/upload/";
 				}, 100);
 			} else if (currentSong.action === "keijiban") {
 				this.playSound("se_don");
