@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# build/version artifacts
+version.json
+
+# large assets not meant for VCS
+public/songs/
+public/songs/**
+public/preview/
+*.log

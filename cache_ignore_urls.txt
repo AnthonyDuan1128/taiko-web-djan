@@ -1,0 +1,13 @@
+/api/leaderboard/*
+/api/scores/*
+/api/playcount/*
+/api/account/*
+/api/login
+/api/register
+/api/logout
+/api/config
+/api/songs
+/api/categories
+/api/preview
+/api/csrftoken
+/admin/*

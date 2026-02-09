@@ -1,0 +1,16 @@
+https://taiko.asia/
+https://taiko.asia/src/js/assets.js
+https://taiko.asia/src/js/strings.js
+https://taiko.asia/src/js/songselect.js
+https://taiko.asia/src/js/scoresheet.js
+https://taiko.asia/src/js/playstats.js
+https://taiko.asia/src/js/leaderboard.js
+https://taiko.asia/src/js/canvasdraw.js
+https://www.taiko.asia/
+https://www.taiko.asia/src/js/assets.js
+https://www.taiko.asia/src/js/strings.js
+https://www.taiko.asia/src/js/songselect.js
+https://www.taiko.asia/src/js/scoresheet.js
+https://www.taiko.asia/src/js/playstats.js
+https://www.taiko.asia/src/js/leaderboard.js
+https://www.taiko.asia/src/js/canvasdraw.js
