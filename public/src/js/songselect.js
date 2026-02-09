@@ -905,6 +905,29 @@ class SongSelect {
 					return
 				}
 
+				// Dan mode: Skip difficulty selection and directly start with dan course
+				if (currentSong.is_dan && currentSong.courses.dan) {
+					this.playSound("se_don", 0, fromP2 ? fromP2.player : false)
+					assets.sounds["v_songsel"].stop()
+					// Directly start Dan game
+					new LoadSong({
+						"title": currentSong.title,
+						"originalTitle": currentSong.originalTitle,
+						"folder": currentSong.id,
+						"difficulty": "dan",
+						"category": currentSong.category,
+						"category_id": currentSong.category_id,
+						"type": currentSong.type,
+						"offset": currentSong.offset,
+						"songSkin": currentSong.songSkin,
+						"stars": currentSong.courses.dan.stars,
+						"hash": currentSong.hash,
+						"lyrics": currentSong.lyrics,
+						"video": currentSong.video,
+					}, false, false, false)
+					return
+				}
+
 				var prevScreen = this.state.screen
 				this.state.screen = "difficulty"
 				this.state.screenMS = this.getMS()
