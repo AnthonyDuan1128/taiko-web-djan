@@ -116,7 +116,7 @@ if [ -d "$DAN_SAMPLE_DIR" ]; then
     if [ -z "$tja_file" ]; then
       return
     fi
-    local curl_args=(-s -X POST "http://127.0.0.1:80/api/upload" -F "file_tja=@$tja_file")
+    local curl_args=(-s -X POST "http://127.0.0.1:80/api/upload" -F "file_tja=@$tja_file" -F "song_type=11 Dan Dojo")
     while IFS= read -r -d '' ogg_file; do
       curl_args+=(-F "file_music[]=@$ogg_file")
     done < <(find "$dan_dir" -maxdepth 1 -name "*.ogg" -type f -print0)
