@@ -341,6 +341,7 @@ class LoadSong {
 				var danAudioFiles = {}
 				var songDir = gameConfig.songs_baseurl + song.folder + "/"
 				var danAudioPromises = []
+				var cancelled = false
 				// Scan TJA for #NEXTSONG lines to find audio files
 				for (var i = 0; i < this.songData.length; i++) {
 					var line = this.songData[i].trim()
@@ -353,8 +354,10 @@ class LoadSong {
 								; (function (wf, url) {
 									danAudioPromises.push(
 										snd.musicGain.load(new RemoteFile(url)).then(sound => {
-											danAudioFiles[wf] = sound
-											console.log("Dan audio loaded: " + wf)
+											if (!cancelled) {
+												danAudioFiles[wf] = sound
+												console.log("Dan audio loaded: " + wf)
+											}
 										}).catch(e => {
 											console.warn("Failed to load Dan audio: " + wf, e)
 										})
@@ -365,6 +368,10 @@ class LoadSong {
 				}
 				if (danAudioPromises.length > 0) {
 					Promise.all(danAudioPromises).then(() => {
+						if (cancelled) {
+							console.log("Dan audio loading cancelled")
+							return
+						}
 						var taikoGame = new Controller(song, this.songData, this.autoPlayEnabled, false, this.touchEnabled)
 						taikoGame.danAudioFiles = danAudioFiles
 						taikoGame.run()
@@ -373,12 +380,15 @@ class LoadSong {
 					var taikoGame = new Controller(song, this.songData, this.autoPlayEnabled, false, this.touchEnabled)
 					taikoGame.run()
 				}
+				// Store cancel function for cleanup
+				this._cancelDanLoad = function () { cancelled = true }
 			} else {
 				var taikoGame = new Controller(song, this.songData, this.autoPlayEnabled, false, this.touchEnabled)
 				taikoGame.run()
 			}
 		}
 	}
+
 	startMultiplayer(repeat) {
 		if (document.hasFocus()) {
 			p2.send("gamestart")
@@ -406,6 +416,10 @@ class LoadSong {
 		pageEvents.send("load-song-cancel")
 	}
 	clean() {
+		if (this._cancelDanLoad) {
+			this._cancelDanLoad()
+			delete this._cancelDanLoad
+		}
 		delete this.promises
 		delete this.songObj
 		delete this.videoElement
