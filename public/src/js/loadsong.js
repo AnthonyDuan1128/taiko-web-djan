@@ -1,27 +1,27 @@
-class LoadSong{
-	constructor(...args){
+class LoadSong {
+	constructor(...args) {
 		this.init(...args)
 	}
-	init(selectedSong, autoPlayEnabled, multiplayer, touchEnabled){
+	init(selectedSong, autoPlayEnabled, multiplayer, touchEnabled) {
 		this.selectedSong = selectedSong
 		this.autoPlayEnabled = autoPlayEnabled
 		this.multiplayer = multiplayer
 		this.touchEnabled = touchEnabled
 		var resolution = settings.getItem("resolution")
 		this.imgScale = 1
-		if(resolution === "medium"){
+		if (resolution === "medium") {
 			this.imgScale = 0.75
-		}else if(resolution === "low"){
+		} else if (resolution === "low") {
 			this.imgScale = 0.5
-		}else if(resolution === "lowest"){
+		} else if (resolution === "lowest") {
 			this.imgScale = 0.25
 		}
-		
+
 		loader.changePage("loadsong", true)
 		var loadingText = document.getElementById("loading-text")
 		loadingText.appendChild(document.createTextNode(strings.loading))
 		loadingText.setAttribute("alt", strings.loading)
-		if(multiplayer){
+		if (multiplayer) {
 			var cancel = document.getElementById("p2-cancel-button")
 			cancel.appendChild(document.createTextNode(strings.cancel))
 			cancel.setAttribute("alt", strings.cancel)
@@ -34,25 +34,25 @@ class LoadSong{
 			touchEnabled: touchEnabled
 		})
 	}
-	run(){
+	run() {
 		var song = this.selectedSong
 		var id = song.folder
 		var songObj
 		this.promises = []
-		if(id !== "calibration"){
+		if (id !== "calibration") {
 			assets.sounds["v_start"].play()
 			assets.songs.forEach(song => {
-				if(song.id === id){
+				if (song.id === id) {
 					songObj = song
-				}else{
-					if(song.sound){
+				} else {
+					if (song.sound) {
 						song.sound.clean()
 						delete song.sound
 					}
 					delete song.lyricsData
 				}
 			})
-		}else{
+		} else {
 			songObj = {
 				music: "muted",
 				custom: true
@@ -62,21 +62,21 @@ class LoadSong{
 		song.songBg = this.randInt(1, 5)
 		song.songStage = this.randInt(1, 3)
 		song.donBg = this.randInt(1, 6)
-		if(this.songObj && this.songObj.category_id === 9){
-			 LoadSong.insertBackgroundVideo(this.songObj.id)
-				}
-		if(song.songSkin && song.songSkin.name){
+		if (this.songObj && this.songObj.category_id === 9) {
+			LoadSong.insertBackgroundVideo(this.songObj.id)
+		}
+		if (song.songSkin && song.songSkin.name) {
 			var imgLoad = []
-			for(var type in song.songSkin){
+			for (var type in song.songSkin) {
 				var value = song.songSkin[type]
-				if(["song", "stage", "don"].indexOf(type) !== -1 && value && value !== "none"){
+				if (["song", "stage", "don"].indexOf(type) !== -1 && value && value !== "none") {
 					var filename = "bg_" + type + "_" + song.songSkin.name
-					if(value === "static"){
+					if (value === "static") {
 						imgLoad.push({
 							filename: filename,
 							type: type
 						})
-					}else{
+					} else {
 						imgLoad.push({
 							filename: filename + "_a",
 							type: type
@@ -86,67 +86,67 @@ class LoadSong{
 							type: type
 						})
 					}
-					if(type === "don"){
+					if (type === "don") {
 						song.donBg = null
-					}else if(type === "song"){
+					} else if (type === "song") {
 						song.songBg = null
-					}else if(type === "stage"){
+					} else if (type === "stage") {
 						song.songStage = null
 					}
 				}
 			}
 			var skinBase = gameConfig.assets_baseurl + "song_skins/"
-			for(var i = 0; i < imgLoad.length; i++){
+			for (var i = 0; i < imgLoad.length; i++) {
 				let filename = imgLoad[i].filename
 				let prefix = song.songSkin.prefix || ""
-				if((prefix + filename) in assets.image){
+				if ((prefix + filename) in assets.image) {
 					continue
 				}
 				let img = document.createElement("img")
 				let force = imgLoad[i].type === "song" && this.touchEnabled
-				if(!songObj.custom){
+				if (!songObj.custom) {
 					img.crossOrigin = "anonymous"
 				}
 				let promise = pageEvents.load(img)
 				this.addPromise(promise.then(() => {
 					return this.scaleImg(img, filename, prefix, force)
 				}), songObj.custom ? filename + ".png" : skinBase + filename + ".png")
-				if(songObj.custom){
+				if (songObj.custom) {
 					this.addPromise(song.songSkin[filename + ".png"].blob().then(blob => {
 						img.src = URL.createObjectURL(blob)
 					}), song.songSkin[filename + ".png"].url)
-				}else{
+				} else {
 					img.src = skinBase + filename + ".png"
 				}
 			}
 		}
 		this.loadSongBg(id)
-		
-		if(songObj.sound && songObj.sound.buffer){
+
+		if (songObj.sound && songObj.sound.buffer) {
 			songObj.sound.gain = snd.musicGain
-		}else if(songObj.music !== "muted"){
+		} else if (songObj.music !== "muted") {
 			this.addPromise(snd.musicGain.load(songObj.music).then(sound => {
 				songObj.sound = sound
 			}), songObj.music.url)
 		}
 		var chart = songObj.chart
-		if(chart && chart.separateDiff){
+		if (chart && chart.separateDiff) {
 			var chartDiff = this.selectedSong.difficulty
 			chart = chart[chartDiff]
 		}
-		if(chart){
+		if (chart) {
 			this.addPromise(chart.read(song.type === "tja" ? "utf-8" : "").then(data => {
 				this.songData = data.replace(/\0/g, "").split("\n")
 			}), chart.url)
-		}else{
+		} else {
 			this.songData = ""
 		}
-		if(songObj.lyricsFile && !songObj.lyricsData && !this.multiplayer && (!this.touchEnabled || this.autoPlayEnabled) && settings.getItem("showLyrics")){
+		if (songObj.lyricsFile && !songObj.lyricsData && !this.multiplayer && (!this.touchEnabled || this.autoPlayEnabled) && settings.getItem("showLyrics")) {
 			this.addPromise(songObj.lyricsFile.read().then(data => {
 				songObj.lyricsData = data
-			}, () => {}), songObj.lyricsFile.url)
+			}, () => { }), songObj.lyricsFile.url)
 		}
-		if(this.touchEnabled && !assets.image["touch_drum"]){
+		if (this.touchEnabled && !assets.image["touch_drum"]) {
 			let img = document.createElement("img")
 			img.crossOrigin = "anonymous"
 			var url = gameConfig.assets_baseurl + "img/touch_drum.png"
@@ -162,7 +162,7 @@ class LoadSong{
 			"results_tetsuohana2"
 		]
 		resultsImg.forEach(id => {
-			if(!assets.image[id]){
+			if (!assets.image[id]) {
 				var img = document.createElement("img")
 				img.crossOrigin = "anonymous"
 				var url = gameConfig.assets_baseurl + "img/" + id + ".png"
@@ -172,30 +172,30 @@ class LoadSong{
 				img.src = url
 			}
 		})
-		if(songObj.volume && songObj.volume !== 1){
+		if (songObj.volume && songObj.volume !== 1) {
 			this.promises.push(new Promise(resolve => setTimeout(resolve, 500)))
 		}
 		Promise.all(this.promises).then(() => {
-			if(!this.error){
+			if (!this.error) {
 				this.setupMultiplayer()
 			}
 		})
 	}
-	addPromise(promise, url){
+	addPromise(promise, url) {
 		this.promises.push(promise.catch(response => {
 			this.errorMsg(response, url)
 			return Promise.resolve()
 		}))
 	}
-	errorMsg(error, url){
-		if(!this.error){
-			if(url){
+	errorMsg(error, url) {
+		if (!this.error) {
+			if (url) {
 				error = (Array.isArray(error) ? error[0] + ": " : (error ? error + ": " : "")) + url
 			}
 			pageEvents.send("load-song-error", error)
 			errorMessage(new Error(error).stack)
 			var title = this.selectedSong.title
-			if(title !== this.selectedSong.originalTitle){
+			if (title !== this.selectedSong.originalTitle) {
 				title += " (" + this.selectedSong.originalTitle + ")"
 			}
 			assets.sounds["v_start"].stop()
@@ -211,26 +211,26 @@ class LoadSong{
 		}
 		this.error = true
 	}
-	loadSongBg(){
+	loadSongBg() {
 		var filenames = []
-		if(this.selectedSong.songBg !== null){
+		if (this.selectedSong.songBg !== null) {
 			filenames.push("bg_song_" + this.selectedSong.songBg)
 		}
-		if(this.selectedSong.donBg !== null){
+		if (this.selectedSong.donBg !== null) {
 			filenames.push("bg_don_" + this.selectedSong.donBg)
-			if(this.multiplayer){
+			if (this.multiplayer) {
 				filenames.push("bg_don2_" + this.selectedSong.donBg)
 			}
 		}
-		if(this.selectedSong.songStage !== null){
+		if (this.selectedSong.songStage !== null) {
 			filenames.push("bg_stage_" + this.selectedSong.songStage)
 		}
-		for(var i = 0; i < filenames.length; i++){
+		for (var i = 0; i < filenames.length; i++) {
 			var filename = filenames[i]
 			var stage = filename.startsWith("bg_stage_")
-			for(var letter = 0; letter < (stage ? 1 : 2); letter++){
+			for (var letter = 0; letter < (stage ? 1 : 2); letter++) {
 				let filenameAb = filenames[i] + (stage ? "" : (letter === 0 ? "a" : "b"))
-				if(!(filenameAb in assets.image)){
+				if (!(filenameAb in assets.image)) {
 					let img = document.createElement("img")
 					let force = filenameAb.startsWith("bg_song_") && this.touchEnabled
 					img.crossOrigin = "anonymous"
@@ -243,10 +243,10 @@ class LoadSong{
 			}
 		}
 	}
-	scaleImg(img, filename, prefix, force){
+	scaleImg(img, filename, prefix, force) {
 		return new Promise((resolve, reject) => {
 			var scale = this.imgScale
-			if(force && scale > 0.5){
+			if (force && scale > 0.5) {
 				scale = 0.5
 			}
 			var canvas = document.createElement("canvas")
@@ -266,64 +266,64 @@ class LoadSong{
 				img2.id = prefix + filename
 				img2.src = url
 			}
-			if("toBlob" in canvas){
+			if ("toBlob" in canvas) {
 				canvas.toBlob(blob => {
 					saveScaled(URL.createObjectURL(blob))
 				})
-			}else{
+			} else {
 				saveScaled(canvas.toDataURL())
 			}
 		})
 	}
-	randInt(min, max){
+	randInt(min, max) {
 		return Math.floor(Math.random() * (max - min + 1)) + min
 	}
-	setupMultiplayer(){
+	setupMultiplayer() {
 		var song = this.selectedSong
-		
-		if(this.multiplayer){
+
+		if (this.multiplayer) {
 			var loadingText = document.getElementsByClassName("loading-text")[0]
 			loadingText.firstChild.data = strings.waitingForP2
 			loadingText.setAttribute("alt", strings.waitingForP2)
-			
+
 			this.cancelButton = document.getElementById("p2-cancel-button")
 			this.cancelButton.style.display = "inline-block"
 			pageEvents.add(this.cancelButton, ["mousedown", "touchstart"], this.cancelLoad.bind(this))
-			
+
 			this.song2Data = this.songData
 			this.selectedSong2 = song
 			pageEvents.add(p2, "message", event => {
-				if(event.type === "gameload"){
+				if (event.type === "gameload") {
 					this.cancelButton.style.display = ""
-					
-					if(event.value.diff === song.difficulty){
+
+					if (event.value.diff === song.difficulty) {
 						this.startMultiplayer()
-					}else{
+					} else {
 						this.selectedSong2 = {}
-						for(var i in this.selectedSong){
+						for (var i in this.selectedSong) {
 							this.selectedSong2[i] = this.selectedSong[i]
 						}
 						this.selectedSong2.difficulty = event.value.diff
 						var chart = this.songObj.chart
 						var chartDiff = this.selectedSong2.difficulty
-						if(song.type === "tja" || !chart || !chart.separateDiff || !chart[chartDiff]){
+						if (song.type === "tja" || !chart || !chart.separateDiff || !chart[chartDiff]) {
 							this.startMultiplayer()
-						}else{
+						} else {
 							chart[chartDiff].read(song.type === "tja" ? "utf-8" : "").then(data => {
 								this.song2Data = data.replace(/\0/g, "").split("\n")
-							}, () => {}).then(() => {
+							}, () => { }).then(() => {
 								this.startMultiplayer()
 							})
 						}
 					}
-				}else if(event.type === "gamestart"){
+				} else if (event.type === "gamestart") {
 					this.clean()
 					p2.clearMessage("songsel")
 					var taikoGame1 = new Controller(song, this.songData, false, 1, this.touchEnabled)
 					var taikoGame2 = new Controller(this.selectedSong2, this.song2Data, true, 2, this.touchEnabled)
 					taikoGame1.run(taikoGame2)
 					pageEvents.send("load-song-player2", this.selectedSong2)
-				}else if(event.type === "left" || event.type === "gameend"){
+				} else if (event.type === "left" || event.type === "gameend") {
 					this.clean()
 					new SongSelect(false, false, this.touchEnabled)
 				}
@@ -334,17 +334,56 @@ class LoadSong{
 				name: account.loggedIn ? account.displayName : null,
 				don: account.loggedIn ? account.don : null
 			})
-		}else{
+		} else {
 			this.clean()
-			var taikoGame = new Controller(song, this.songData, this.autoPlayEnabled, false, this.touchEnabled)
-			taikoGame.run()
+			// Dan mode: load additional audio files for multi-song Dan
+			if (song.difficulty === "dan" && this.songData) {
+				var danAudioFiles = {}
+				var songDir = gameConfig.songs_baseurl + song.folder + "/"
+				var danAudioPromises = []
+				// Scan TJA for #NEXTSONG lines to find audio files
+				for (var i = 0; i < this.songData.length; i++) {
+					var line = this.songData[i].trim()
+					if (line.indexOf("#NEXTSONG") === 0) {
+						var parts = line.substring("#NEXTSONG".length).trim().split(",")
+						var waveFile = parts[3] ? parts[3].trim() : ""
+						if (waveFile && !danAudioFiles[waveFile]) {
+							danAudioFiles[waveFile] = null // placeholder
+							var audioUrl = songDir + waveFile
+								; (function (wf, url) {
+									danAudioPromises.push(
+										snd.musicGain.load(new RemoteFile(url)).then(sound => {
+											danAudioFiles[wf] = sound
+											console.log("Dan audio loaded: " + wf)
+										}).catch(e => {
+											console.warn("Failed to load Dan audio: " + wf, e)
+										})
+									)
+								})(waveFile, audioUrl)
+						}
+					}
+				}
+				if (danAudioPromises.length > 0) {
+					Promise.all(danAudioPromises).then(() => {
+						var taikoGame = new Controller(song, this.songData, this.autoPlayEnabled, false, this.touchEnabled)
+						taikoGame.danAudioFiles = danAudioFiles
+						taikoGame.run()
+					})
+				} else {
+					var taikoGame = new Controller(song, this.songData, this.autoPlayEnabled, false, this.touchEnabled)
+					taikoGame.run()
+				}
+			} else {
+				var taikoGame = new Controller(song, this.songData, this.autoPlayEnabled, false, this.touchEnabled)
+				taikoGame.run()
+			}
 		}
 	}
-	startMultiplayer(repeat){
-		if(document.hasFocus()){
+	startMultiplayer(repeat) {
+		if (document.hasFocus()) {
 			p2.send("gamestart")
-		}else{
-			if(!repeat){
+		} else {
+			if (!repeat) {
 				assets.sounds["v_sanka"].play()
 				pageEvents.send("load-song-unfocused")
 			}
@@ -353,12 +392,12 @@ class LoadSong{
 			}, 100)
 		}
 	}
-	cancelLoad(event){
-		if(event.type === "mousedown"){
-			if(event.which !== 1){
+	cancelLoad(event) {
+		if (event.type === "mousedown") {
+			if (event.which !== 1) {
 				return
 			}
-		}else{
+		} else {
 			event.preventDefault()
 		}
 		p2.send("leave")
@@ -366,32 +405,32 @@ class LoadSong{
 		this.cancelButton.style.pointerEvents = "none"
 		pageEvents.send("load-song-cancel")
 	}
-	clean(){
+	clean() {
 		delete this.promises
 		delete this.songObj
-        delete this.videoElement
+		delete this.videoElement
 		pageEvents.remove(p2, "message")
-		if(this.cancelButton){
+		if (this.cancelButton) {
 			pageEvents.remove(this.cancelButton, ["mousedown", "touchstart"])
 			delete this.cancelButton
 		}
 	}
-	
-	static insertBackgroundVideo(songId) {
-        const video = document.createElement("video");
-        video.src = `songs/${songId}/main.mp4`; 
-        video.autoplay = true;
-        video.muted = true;  // 可选：静音
-        video.style.objectFit = 'cover';
-        video.style.position = 'fixed';
-        video.style.top = "0";
-        video.style.left = "0";
-        video.style.zIndex = "0";  // 背景视频
-        video.style.width = "100vw";
-        video.style.height = "100vh";
-        document.body.appendChild(video);
-        window.videoElement = video;
-    }
 
-	
+	static insertBackgroundVideo(songId) {
+		const video = document.createElement("video");
+		video.src = `songs/${songId}/main.mp4`;
+		video.autoplay = true;
+		video.muted = true;  // 可选：静音
+		video.style.objectFit = 'cover';
+		video.style.position = 'fixed';
+		video.style.top = "0";
+		video.style.left = "0";
+		video.style.zIndex = "0";  // 背景视频
+		video.style.width = "100vw";
+		video.style.height = "100vh";
+		document.body.appendChild(video);
+		window.videoElement = video;
+	}
+
+
 }

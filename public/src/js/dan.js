@@ -112,6 +112,7 @@ class DanExam {
                 current = this.getAccuracy()
                 break
             case 'jp': // good hits (良)
+            case 'h':  // total good hits (良の数) - same as jp
                 current = exam.scope === 'l'
                     ? this.currentSongStats.goodHits
                     : this.stats.goodHits
@@ -203,8 +204,10 @@ class DanExam {
         switch (type) {
             case 'g': return '魂ゲージ'   // Soul gauge
             case 'jp': return '良'        // Good
+            case 'h': return '良の数'     // Good hit count
             case 'jb': return '不可'      // Bad
             case 'r': return '連打'       // Drumroll
+            case 'c': return 'コンボ'     // Max combo
             default: return type
         }
     }

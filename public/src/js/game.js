@@ -43,6 +43,29 @@ class Game {
 				this.mainAsset = song.sound
 			}
 		})
+
+		// Dan mode: extract songBreak boundaries and set up audio switching
+		this.danSongBreaks = []
+		this.currentDanSong = 0
+		if (this.controller.isDanMode) {
+			// Collect songBreak circles (they mark where next songs start)
+			for (var i = 0; i < this.songData.circles.length; i++) {
+				if (this.songData.circles[i].type === "songBreak") {
+					this.danSongBreaks.push({
+						ms: this.songData.circles[i].ms,
+						songInfo: this.songData.circles[i].songInfo,
+						triggered: false
+					})
+				}
+			}
+			// Remove songBreak circles from the playable circles array
+			this.songData.circles = this.songData.circles.filter(c => c.type !== "songBreak")
+			// Set total note count for DanExam accuracy
+			if (this.controller.danExam) {
+				this.controller.danExam.setTotalNotes(combo)
+			}
+			console.log("Dan mode: " + this.danSongBreaks.length + " song breaks found")
+		}
 	}
 	run() {
 		this.timeForDistanceCircle = 2500
@@ -72,10 +95,43 @@ class Game {
 		// Main operations
 		this.updateCirclesStatus()
 		this.checkPlays()
+		// Dan mode: check if we crossed a song boundary
+		if (this.controller.isDanMode) {
+			this.checkDanSongBoundary()
+		}
 		// Event operations
 		this.whenFadeoutMusic()
 		if (this.controller.multiplayer !== 2) {
 			this.whenLastCirclePlayed()
+		}
+	}
+	checkDanSongBoundary() {
+		var ms = this.elapsedTime
+		for (var i = 0; i < this.danSongBreaks.length; i++) {
+			var sb = this.danSongBreaks[i]
+			if (!sb.triggered && ms >= sb.ms) {
+				sb.triggered = true
+				this.currentDanSong = i + 1
+				// Notify DanExam about song transition
+				if (this.controller.danExam) {
+					this.controller.danExam.nextSong()
+				}
+				// Switch audio: stop current, play new
+				if (sb.songInfo && sb.songInfo.wave && this.controller.danAudioFiles) {
+					var newAudio = this.controller.danAudioFiles[sb.songInfo.wave]
+					if (newAudio) {
+						// Stop current music
+						if (this.mainAsset) {
+							this.mainAsset.stop()
+						}
+						this.mainAsset = newAudio
+						this.mainMusicPlaying = false
+						// Play from the correct offset
+						var songOffset = sb.songInfo.scoreInit || 0
+						console.log("Dan: switching to song " + (i + 1) + " - " + sb.songInfo.title)
+					}
+				}
+			}
 		}
 	}
 	getCircles() {
@@ -262,6 +318,10 @@ class Game {
 				score: -1
 			})
 		}
+		// Dan mode: record missed note
+		if (this.controller.isDanMode && this.controller.danExam) {
+			this.controller.danExam.recordHit('bad')
+		}
 	}
 	checkPlays() {
 		var circles = this.songData.circles
@@ -392,6 +452,16 @@ class Game {
 				this.resetSection()
 			}
 			this.sectionNotes.push(score === 450 ? 1 : (score === 230 ? 0.5 : 0))
+			// Dan mode: record hit result
+			if (this.controller.isDanMode && this.controller.danExam) {
+				if (score === 450) {
+					this.controller.danExam.recordHit('good')
+				} else if (score === 230) {
+					this.controller.danExam.recordHit('ok')
+				} else {
+					this.controller.danExam.recordHit('bad')
+				}
+			}
 			if (this.controller.multiplayer === 1) {
 				var value = {
 					score: score,
