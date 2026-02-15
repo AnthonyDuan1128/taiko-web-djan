@@ -104,36 +104,81 @@ if command -v ufw >/dev/null 2>&1; then
 fi
 
 echo "等待服务启动..."
-sleep 5
+API_URL="http://127.0.0.1:80"
+for i in $(seq 1 30); do
+  if curl -sf "${API_URL}/api/songs" >/dev/null 2>&1; then
+    echo "服务已就绪"
+    break
+  fi
+  if [ "$i" -eq 30 ]; then
+    echo "服务启动超时，跳过上传"
+    echo "部署完成（直接监听 80 端口）"
+    exit 0
+  fi
+  sleep 2
+done
 
 echo "上传段位道场样本数据..."
 DAN_SAMPLE_DIR="$SRC_DIR/段位道场样本文件"
 if [ -d "$DAN_SAMPLE_DIR" ]; then
+  DAN_OK=0
+  DAN_FAIL=0
+  DAN_TOTAL=0
+
   upload_dan() {
     local dan_dir="$1"
     local tja_file
     tja_file=$(find "$dan_dir" -maxdepth 1 -name "*.tja" -type f | head -1)
     if [ -z "$tja_file" ]; then
-      return
+      return 1
     fi
-    local curl_args=(-s -X POST "http://127.0.0.1:80/api/upload" -F "file_tja=@$tja_file" -F "song_type=11 Dan Dojo")
+
+    # Build curl arguments: TJA file + all OGG audio files + song_type
+    local curl_args=(-s -X POST "${API_URL}/api/upload")
+    curl_args+=(-F "file_tja=@${tja_file}")
+    curl_args+=(-F "song_type=11 Dan Dojo")
+
+    local ogg_count=0
     while IFS= read -r -d '' ogg_file; do
-      curl_args+=(-F "file_music[]=@$ogg_file")
+      curl_args+=(-F "file_music[]=@${ogg_file}")
+      ogg_count=$((ogg_count + 1))
     done < <(find "$dan_dir" -maxdepth 1 -name "*.ogg" -type f -print0)
+
+    if [ "$ogg_count" -eq 0 ]; then
+      echo "  ✗ $(basename "$dan_dir"): 缺少 OGG 音频文件"
+      return 1
+    fi
+
     local response
     response=$(curl "${curl_args[@]}" 2>/dev/null || echo '{"error":"请求失败"}')
     local name
     name=$(basename "$dan_dir")
+
     if echo "$response" | grep -q '"success".*:.*true'; then
-      echo "  ✓ $name"
+      echo "  ✓ ${name} (${ogg_count} 个音频)"
+      return 0
     else
-      echo "  ✗ $name: $response"
+      local err
+      err=$(echo "$response" | grep -oP '"error"\s*:\s*"\K[^"]+' || echo "$response")
+      echo "  ✗ ${name}: ${err}"
+      return 1
     fi
   }
-  find "$DAN_SAMPLE_DIR" -mindepth 2 -maxdepth 2 -type d | sort | while read -r dan_dir; do
-    upload_dan "$dan_dir"
-  done
-  echo "段位道场数据上传完成"
+
+  # Iterate all Dan song directories (depth 2: version/dan_name/)
+  while IFS= read -r -d '' dan_dir; do
+    DAN_TOTAL=$((DAN_TOTAL + 1))
+    if upload_dan "$dan_dir"; then
+      DAN_OK=$((DAN_OK + 1))
+    else
+      DAN_FAIL=$((DAN_FAIL + 1))
+    fi
+  done < <(find "$DAN_SAMPLE_DIR" -mindepth 2 -maxdepth 2 -type d -print0 | sort -z)
+
+  echo "段位道场上传完成: ${DAN_OK}/${DAN_TOTAL} 成功"
+  if [ "$DAN_FAIL" -gt 0 ]; then
+    echo "  ⚠ ${DAN_FAIL} 个失败"
+  fi
 else
   echo "未找到段位道场样本文件夹，跳过上传"
 fi
