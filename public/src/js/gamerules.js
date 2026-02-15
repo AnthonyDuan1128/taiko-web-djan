@@ -1,12 +1,12 @@
-class GameRules{
-	constructor(...args){
+class GameRules {
+	constructor(...args) {
 		this.init(...args)
 	}
-	init(game){
+	init(game) {
 		this.difficulty = game.controller.selectedSong.difficulty
 		var frame = 1000 / 60
-		
-		switch(this.difficulty){
+
+		switch (this.difficulty) {
 			case "easy":
 			case "normal":
 				this.good = 5 / 2 * frame
@@ -16,13 +16,14 @@ class GameRules{
 			case "hard":
 			case "oni":
 			case "ura":
+			case "dan":
 			default:
 				this.good = 3 / 2 * frame
 				this.ok = 9 / 2 * frame
 				this.bad = 13 / 2 * frame
 				break
 		}
-		switch(this.difficulty){
+		switch (this.difficulty) {
 			case "easy":
 				this.gaugeClear = 30 / 50
 				break
@@ -32,18 +33,19 @@ class GameRules{
 				break
 			case "oni":
 			case "ura":
+			case "dan":
 				this.gaugeClear = 40 / 50
 				break
 			default:
 				this.gaugeClear = 51 / 50
 				break
 		}
-		
+
 		this.daiLeniency = 2 * frame
 	}
-	soulPoints(combo){
+	soulPoints(combo) {
 		var good, ok, bad
-		switch(this.difficulty){
+		switch (this.difficulty) {
 			case "easy":
 				good = Math.floor(10000 / combo * 1.575)
 				ok = Math.floor(good * 0.75)
@@ -61,17 +63,18 @@ class GameRules{
 				break
 			case "oni":
 			case "ura":
+			case "dan":
 				good = Math.floor(10000 / combo / 0.7)
 				ok = Math.floor(good * 0.5)
 				bad = Math.ceil(good * -1.6)
 				break
 		}
-		return {good: good, ok: ok, bad: bad}
+		return { good: good, ok: ok, bad: bad }
 	}
-	gaugePercent(gauge){
+	gaugePercent(gauge) {
 		return Math.floor(gauge / 200) / 50
 	}
-	clearReached(gauge){
+	clearReached(gauge) {
 		return this.gaugePercent(gauge) >= this.gaugeClear
 	}
 }

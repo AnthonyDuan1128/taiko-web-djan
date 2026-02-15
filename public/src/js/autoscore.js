@@ -1,5 +1,5 @@
-class AutoScore { 
-	constructor(...args){
+class AutoScore {
+	constructor(...args) {
 		this.init(...args)
 	}
 	init(difficulty, level, scoremode, circles) {
@@ -62,7 +62,7 @@ class AutoScore {
 				380000,
 			]
 		}
-		if (this.GetMaxCombo() === 0) { 
+		if (this.GetMaxCombo() === 0) {
 			this.ScoreDiff = 100;
 			this.ScoreInit = 450;
 			return;
@@ -73,7 +73,7 @@ class AutoScore {
 		this.ScoreInit = 0;
 		var max_init = this.GetMaxPossibleInit(target);
 		var min_init = 0;
-		while (true) { 
+		while (true) {
 			this.ScoreInit = (max_init + min_init) / 2;
 			this.ScoreDiff = Math.round(this.ScoreInit / 4);
 			this.Score = this.TryScore(this.ScoreInit, this.ScoreDiff);
@@ -85,17 +85,17 @@ class AutoScore {
 				break;
 			} else if (this.Score >= target) {
 				max_init = this.ScoreInit;
-			} else { 
+			} else {
 				min_init = this.ScoreInit;
 			}
-			if (max_init - min_init <= 10) { 
+			if (max_init - min_init <= 10) {
 				this.ScoreInit = Math.floor(this.ScoreInit / 10) * 10;
 				this.ScoreDiff = Math.round(this.ScoreInit / 4);
 				this.Score = this.TryScore(this.ScoreInit, this.ScoreDiff);
 				break;
 			}
 		}
-		while (this.Score < target) { 
+		while (this.Score < target) {
 			this.ScoreInit += 10;
 			this.ScoreDiff = Math.round(this.ScoreInit / 4);
 			this.Score = this.TryScore(this.ScoreInit, this.ScoreDiff);
@@ -103,20 +103,20 @@ class AutoScore {
 		}
 		//console.log(this.ScoreInit, this.ScoreDiff, this.Score);
 	}
-	IsCommonCircle(circle) { 
+	IsCommonCircle(circle) {
 		const ty = circle.type;
 		return ty === "don" || ty === "ka" || ty === "daiDon" || ty === "daiKa";
 	}
-	TryScore(init, diff) { 
+	TryScore(init, diff) {
 		var score = 0;
 		var combo = 0;
-		for (var circle of this.circles) { 
-			if (circle.branch && circle.branch.name !== "master") { 
+		for (var circle of this.circles) {
+			if (circle.branch && circle.branch.name !== "master") {
 				continue;
 			}
-			if (this.IsCommonCircle(circle)) { 
+			if (this.IsCommonCircle(circle)) {
 				combo++;
-				if (combo % 100 === 0 && this.scoremode !== 1) { 
+				if (combo % 100 === 0 && this.scoremode !== 1) {
 					score += 10000;
 				}
 			}
@@ -124,7 +124,7 @@ class AutoScore {
 			var multiplier = circle.gogoTime ? 1.2 : 1;
 			if (this.scoremode === 1) {
 				diff_mul = Math.max(0, Math.floor((Math.min(combo, 100) - 1) / 10));
-			} else { 
+			} else {
 				if (combo >= 100) {
 					diff_mul = 8;
 				} else if (combo >= 50) {
@@ -135,73 +135,74 @@ class AutoScore {
 					diff_mul = 1;
 				}
 			}
-			switch (circle.type) { 
+			switch (circle.type) {
 				case "don":
-				case "ka": { 
+				case "ka": {
 					score += Math.floor((init + diff * diff_mul) * multiplier / 10) * 10;
 					break;
 				}
 				case "daiDon":
-				case "daiKa": { 
+				case "daiKa": {
 					score += Math.floor((init + diff * diff_mul) * multiplier / 5) * 10;
 					break;
 				}
-				case "balloon": { 
+				case "balloon": {
 					score += (5000 + 300 * circle.requiredHits) * multiplier;
 					break;
 				}
-				default: { 
+				default: {
 					break;
 				}
 			}
 		}
 		return score;
 	}
-	GetTargetScore(difficulty, level) { 
+	GetTargetScore(difficulty, level) {
 		//console.log(difficulty, level)
-		var ret = this.basic_max_score_list[difficulty][level];
-		if (!ret) { 
-			ret = this.basic_max_score_list[difficulty][0];
+		var scoreList = this.basic_max_score_list[difficulty] || this.basic_max_score_list["oni"];
+		var ret = scoreList[level];
+		if (!ret) {
+			ret = scoreList[0];
 		}
 		return ret;
 	}
-	GetMaxCombo() { 
+	GetMaxCombo() {
 		var combo = 0;
-		for (var circle of this.circles) { 
-			if (this.IsCommonCircle(circle) && (!circle.branch || circle.branch.name === "master")) { 
+		for (var circle of this.circles) {
+			if (this.IsCommonCircle(circle) && (!circle.branch || circle.branch.name === "master")) {
 				combo++;
 			}
 		}
 		return combo;
 	}
-	GetMaxPossibleInit(target) { 
+	GetMaxPossibleInit(target) {
 		var basic_score = 0;
-		if (this.scoremode !== 1) { 
+		if (this.scoremode !== 1) {
 			const max_combo = this.GetMaxCombo();
 			basic_score += Math.floor(max_combo / 100);
 		}
 		var combo = 0;
-		for (var circle of this.circles) { 
-			if (circle.branch && circle.branch.name !== "master") { 
+		for (var circle of this.circles) {
+			if (circle.branch && circle.branch.name !== "master") {
 				continue;
 			}
 			var multiplier = circle.gogoTime ? 1.2 : 1;
-			switch (circle.type) { 
+			switch (circle.type) {
 				case "don":
-				case "ka": { 
+				case "ka": {
 					combo += (1 * multiplier);
 					break;
 				}
 				case "daiDon":
-				case "daiKa": { 
+				case "daiKa": {
 					combo += (2 * multiplier);
 					break;
 				}
-				case "balloon": { 
+				case "balloon": {
 					basic_score += (5000 + 300 * circle.requiredHits) * multiplier;
 					break;
 				}
-				default: { 
+				default: {
 					break;
 				}
 			}
